@@ -4,7 +4,7 @@ Taller 1 - Reto de Programación
 Cálculo paralelo de números de Fibonacci con concurrent.futures
  
 Curso: Infraestructuras Paralelas y Distribuidas - 750023C
-Samuel Banguero Ortega
+Samuel Banguero Ortega - 2418671
 """
 
 import time
@@ -23,12 +23,17 @@ def fibonacci(n):
 
 
 def calcular_fibonacci_paralelo(n_elementos, executor_type):
+    """
+    Calcula los números de Fibonacci utilizando
+    un Executor de concurrent.futures.
+    """
+
     inicio = time.time()
 
     """
-    creación de tareas (PARALELIZABLE)
+    creación de tareas (paralelizable)
     Cada executor.submit(fibonacci, i) es independiente de las demás:
-    Por eso se puede repartir entre varios hilos sin riesgo.
+    Por eso se puede repartir entre varios hilos/procesos sin riesgo.
     """
 
     resultados = [0] * n_elementos
@@ -40,7 +45,8 @@ def calcular_fibonacci_paralelo(n_elementos, executor_type):
 
         """
         Trampa serial
-        si se paralelizara esta instruccion el orden de fibonacci no seria el correcto 
+        No se puede paralelizar ya que la recoleccion de datos depende de que cada future acabe
+        y se agregue a resultados 
         """
         for i, future in enumerate(futures):
             resultados[i] = future.result()
