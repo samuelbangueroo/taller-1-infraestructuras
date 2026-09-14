@@ -10,7 +10,7 @@ Samuel Banguero Ortega - 2418671
 import time
 import concurrent.futures
 
-N = 6666 # Número de Fibonacci a calcular
+N = 6600 # Número de Fibonacci a calcular
 
 def fibonacci(n):
     """
@@ -86,6 +86,7 @@ def calcular_fibonacci_paralelo(n_elementos, executor_type):
 def tiempos(t_paralelo, t_secuencial):
     print(f"Tiempo de ejecución paralelo: {t_paralelo:.4f} segundos")
     print(f"Tiempo de ejecución secuencial: {t_secuencial:.4f} segundos")
+    print(f"Tiempo total: {t_paralelo+t_secuencial:.4f} segundos")
 
 
 if __name__ == "__main__":
