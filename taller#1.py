@@ -63,9 +63,11 @@ def calcular_fibonacci_paralelo(n_elementos, executor_type):
         ]
 
         """
-        Trampa serial
-        No se puede paralelizar ya que la recoleccion de datos depende de que cada future acabe
-        y se agregue a resultados 
+        Recolección de resultados
+        Este ciclo se mantiene serial porque se encarga de recuperar
+        los resultados de los Future y almacenarlos en el orden original.
+        Los cálculos de Fibonacci ya fueron ejecutados en paralelo
+        por los procesos.
         """
         for i, future in enumerate(futures):
             resultados[i] = future.result()
