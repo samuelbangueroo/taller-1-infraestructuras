@@ -1,2 +1,1 @@
-Samuel Banguero Ortega-2418671
-\Juan Diego Cárdenas Mejía - 2416437
+Samuel Banguero Ortega-2418671 <br>Juan Diego Cárdenas Mejía - 2416437
