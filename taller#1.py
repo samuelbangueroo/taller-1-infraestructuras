@@ -23,8 +23,9 @@ def fibonacci(n):
     
     a, b = 0, 1
     for _ in range(n):
-        a = b
+        c = b
         b = a + b
+        a = c
     return a
 
 def calcular_fibonacci_secuencial(n_elementos):
@@ -37,7 +38,7 @@ def calcular_fibonacci_secuencial(n_elementos):
 
     results = []
 
-    for i in range(n_elementos):
+    for i in range(n_elementos + 1):
         results.append(fibonacci(i))
 
     fin = time.time()
@@ -70,7 +71,7 @@ def calcular_fibonacci_paralelo_map(n_elementos, executor_type, chunksize = 1, m
     """
 
     with executor_type(max_workers = max_workers) as executor:
-        results = executor.map(fibonacci, range(n_elementos), chunksize = chunksize)
+        results = executor.map(fibonacci, range(n_elementos + 1), chunksize = chunksize)
 
 
     fin = time.time()
@@ -94,7 +95,7 @@ def calcular_fibonacci_paralelo_proc(n_elementos, executor_type):
     de secuencia de Fibonacci.
     """
 
-    numbers = range(n_elementos)
+    numbers = range(n_elementos + 1)
     with executor_type() as executor:
         futures = {executor.submit(fibonacci, n):n for n in numbers}
 
@@ -118,9 +119,9 @@ def print_results(t_paralelo_map, r_paralelo_map, t_paralelo_proc, r_paralelo_pr
     Impresión: serial, hecha una sola vez en el proceso principal,
     después de que todos los resultados ya llegaron evitando salidas corruptas.
     """
-    #print(f"Fibonacci secuencial ({N}): {r_secuencial}")
-    #print(f"Fibonacci paralelo con map   ({N}): {r_paralelo_map}")
-    #print(f"Fibonacci paralelo con procesos   ({N}): {r_paralelo_proc}")
+    print(f"Fibonacci secuencial ({N}): {r_secuencial}")
+    print(f"Fibonacci paralelo con map   ({N}): {r_paralelo_map}")
+    print(f"Fibonacci paralelo con procesos   ({N}): {r_paralelo_proc}")
     print(f"Son idénticas las secuencias: {r_secuencial==r_paralelo_map==r_paralelo_proc}")
     print("\n")
     print(f"Tiempo de ejecución paralelo con map: {t_paralelo_map:.4f} segundos")
@@ -132,7 +133,7 @@ def print_results(t_paralelo_map, r_paralelo_map, t_paralelo_proc, r_paralelo_pr
 
 
 if __name__ == "__main__":
-    N = 10000  # Número de Fibonacci a calcular
+    N = 10  # Número de Fibonacci a calcular
 
     """
     Se emplea ProcessPoolExecutor dado que la división en procesos
