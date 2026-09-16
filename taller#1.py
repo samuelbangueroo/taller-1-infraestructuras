@@ -89,10 +89,10 @@ def calcular_fibonacci_paralelo_proc(n_elementos, executor_type):
     inicio = time.time()
 
     """
-    Distribución en procesos sin división en chunk.
+    Distribución en procesos sin división en chunks.
     Apenas termina una tarea, el procesador se ocupa con otro proceso.
     División de carga de cómputo más equitativa según crecimiento exponencial
-    de secuencia de Fibonacci.
+    de secuencia de Fibonacci. Posibilidad de overhead excesivo.
     """
 
     numbers = range(n_elementos + 1)
@@ -133,7 +133,7 @@ def print_results(t_paralelo_map, r_paralelo_map, t_paralelo_proc, r_paralelo_pr
 
 
 if __name__ == "__main__":
-    N = 10  # Número de Fibonacci a calcular
+    N = 10000  # Número de Fibonacci a calcular
 
     """
     Se emplea ProcessPoolExecutor dado que la división en procesos
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     t_paralelo_map, r_paralelo_map = calcular_fibonacci_paralelo_map(
         N, 
         concurrent.futures.ProcessPoolExecutor,
-        chunksize=100)
+        chunksize=10)
     
     t_paralelo_proc, r_paralelo_proc = calcular_fibonacci_paralelo_proc(
             N, 
