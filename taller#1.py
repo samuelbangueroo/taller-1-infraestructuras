@@ -5,16 +5,19 @@ Cálculo paralelo de números de Fibonacci con concurrent.futures
  
 Curso: Infraestructuras Paralelas y Distribuidas - 750023C
 Samuel Banguero Ortega - 2418671
+Juan Diego Cárdenas Mejía - 2416437
 """
 
 import time
 import concurrent.futures
 
-N = 6600 # Número de Fibonacci a calcular
-
 def fibonacci(n):
     """
     Calcula el n-ésimo número de Fibonacci.
+
+    Este ciclo no es paralelizable: cada iteración depende del resultado
+    de la anterior (a, b se van actualizando en cadena), así que no hay
+    forma de repartir sus pasos entre varios hilos/procesos.
     """
     
     a, b = 0, 1
@@ -24,74 +27,77 @@ def fibonacci(n):
 
 def calcular_fibonacci_secuencial(n_elementos):
     """
-    Calcula los números de Fibonacci de forma secuencial.
+    Calcula los números de Fibonacci de forma secuencial
     Se utiliza como referencia para comparar el rendimiento.
     """
 
     inicio = time.time()
 
-    resultados = [] * n_elementos
+    resultados = []
 
     for i in range(n_elementos):
         resultados.append(fibonacci(i))
 
     fin = time.time()
-    tiempo = fin - inicio
+    tiempo_ejecucion = fin - inicio
 
-    print(f"Fibonacci secuencial ({n_elementos}): {resultados}")
-    return tiempo
+    return tiempo_ejecucion, resultados
 
-def calcular_fibonacci_paralelo(n_elementos, executor_type):
+def calcular_fibonacci_paralelo(n_elementos, executor_type, chunksize = 1, max_workers = None):
     """
     Calcula los números de Fibonacci utilizando
-    un Executor de concurrent.futures
+    un Executor de concurrent.futures.
     """
 
     inicio = time.time()
 
     """
-    creación de tareas (paralelizable)
-    Cada executor.submit(fibonacci, i) es independiente de las demás:
-    Por eso se puede repartir entre varios hilos/procesos sin riesgo.
+    Creación de tareas: paralelizable
+    fibonacci(i) no depende de fibonacci(j), no leen
+    ni escriben estado compartido entre sí. Por eso se puede repartir 
+    sin riesgo entre varios workers.
+    
+    executor.map() además conserva el orden de entrada en la salida;
+    resultados[i] siempre corresponde a fibonacci(i), sin importar en qué orden
+    terminen los workers, así se evita el desorden.
+
+    Trampas seriales evitadas:
+    No se imprime dentro de los workers. La impresión se hace
+    una sola vez al final, en el proceso principal, evitando
+    salidas desordenadas y conflictos de acceso.
     """
 
-    resultados = [0] * n_elementos
-    with executor_type() as executor:
-        futures = [
-            executor.submit(fibonacci, i) 
-            for i in range(n_elementos)
-        ]
-
-        """
-        Recolección de resultados
-        Este ciclo se mantiene serial porque se encarga de recuperar
-        los resultados de los Future y almacenarlos en el orden original.
-        Los cálculos de Fibonacci ya fueron ejecutados en paralelo
-        por los procesos.
-        """
-        for i, future in enumerate(futures):
-            resultados[i] = future.result()
+    with executor_type(max_workers = max_workers) as executor:
+        resultados = list(executor.map(fibonacci, range(n_elementos), chunksize = chunksize))
 
     fin = time.time()
     tiempo_ejecucion = fin - inicio
 
-    """
-    Impresion
-    Siempre serial, se hace una sola despues de que todos los futures hayan terminado
-    evitando conflictos de acceso 
-    """
-    print(f"Fibonacci paralelo ({n_elementos}): {resultados}")
-    return tiempo_ejecucion
+    return tiempo_ejecucion, resultados
 
-def tiempos(t_paralelo, t_secuencial):
-    print(f"Tiempo de ejecución paralelo: {t_paralelo:.4f} segundos")
+
+
+def tiempos(t_paralelo, r_paralelo, t_secuencial, r_secuencial):
+    """
+    Impresión: serial, hecha una sola vez en el proceso principal,
+    después de que todos los resultados ya llegaron evitando salidas corruptas.
+    """
+    print(f"Fibonacci secuencial ({N}): {r_secuencial}")
+    print(f"Fibonacci paralelo   ({N}): {r_paralelo}")
+    print(f"\nTiempo de ejecución paralelo: {t_paralelo:.4f} segundos")
     print(f"Tiempo de ejecución secuencial: {t_secuencial:.4f} segundos")
+    print(f"Speedup:{t_secuencial / t_paralelo:.2f}x")
     print(f"Tiempo total: {t_paralelo+t_secuencial:.4f} segundos")
 
 
 if __name__ == "__main__":
-    
-    tiempos(
-        calcular_fibonacci_paralelo(N,concurrent.futures.ProcessPoolExecutor),
-        calcular_fibonacci_secuencial(N)
-        )
+    N = 6000  # Número de Fibonacci a calcular
+
+    t_paralelo, r_paralelo = calcular_fibonacci_paralelo(
+        N, 
+        concurrent.futures.ProcessPoolExecutor,
+        chunksize=8)
+
+    t_secuencial, r_secuencial = calcular_fibonacci_secuencial(N)
+
+    tiempos(t_paralelo, r_paralelo, t_secuencial, r_secuencial)
